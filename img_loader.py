@@ -10,7 +10,7 @@ from PIL import Image
 class ImageInfo(object):
   """Loads image file paths from input files."""
 
-  self._DEFAULT_IMG_DIMENSIONS = (256, 256, 1)
+  _DEFAULT_IMG_DIMENSIONS = (256, 256, 1)
 
   def __init__(self, num_classes, num_train_imgs_per_class,
                num_test_imgs_per_class):
@@ -26,8 +26,8 @@ class ImageInfo(object):
     """
     # Set the data size values.
     self.num_classes = num_classes
-    self.num_train_imgs_per_class = num_train_img_per_class
-    self.num_test_imgs_per_class = num_test_img_per_class
+    self.num_train_imgs_per_class = num_train_imgs_per_class
+    self.num_test_imgs_per_class = num_test_imgs_per_class
     # Initialize the data lists.
     self.img_dimensions = self._DEFAULT_IMG_DIMENSIONS
     self.classnames = []
@@ -151,10 +151,11 @@ class ImageLoader(object):
         self._image_info.num_test_imgs_per_class,
         self.test_data, self.test_labels, 'test')
     # Normalize the data as needed:
-    train_data = train_data.astype('float32') / 255
-    test_data = test_data.astype('float32') / 255
-    train_labels = np_utils.to_categorical(train_labels, num_categories)
-    test_labels = np_utils.to_categorical(test_labels, num_categories)
+    self.train_data = self.train_data.astype('float32') / 255
+    self.test_data = self.test_data.astype('float32') / 255
+    num_classes = self._image_info.num_classes
+    self.train_labels = np_utils.to_categorical(self.train_labels, num_classes)
+    self.test_labels = np_utils.to_categorical(self.test_labels, num_classes)
 
   def _load_images(self, file_names, num_per_class, data, labels, disp):
     """Loads the images from the given file names to the given arrays.
@@ -174,7 +175,8 @@ class ImageLoader(object):
     image_index = 0
     label_id = -1
     for impath in file_names:
-      if image_index % num_per_class:
+      #print '{} {} {}'.format(image_index, label_id, impath)
+      if (image_index % num_per_class) == 0:
         label_id += 1
         print 'Loading {} images for class "{}"...'.format(
             disp, self._image_info.classnames[label_id])
