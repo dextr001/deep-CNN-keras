@@ -135,8 +135,13 @@ class ImageLoader(object):
                               dtype='float32')
     self.test_labels = np.empty((num_test_imgs,), dtype='uint8')
 
-  def load_train_images(self):
-    """..."""
+  def load_all_images(self):
+    """Loads all images (training and test) into memory.
+
+    All images are loaded based on the paths provided in the ImageInfo object.
+    The image data is stored in the train_data/train_labels and test_data/
+    test_labels numpy arrays, and formatted appropriately for the classifier.
+    """
     self._load_images(
         self._image_info.train_img_files,
         self._image_info.num_train_imgs_per_class,
@@ -152,7 +157,20 @@ class ImageLoader(object):
     test_labels = np_utils.to_categorical(test_labels, num_categories)
 
   def _load_images(self, file_names, num_per_class, data, labels, disp):
-    """Reads all images."""
+    """Loads the images from the given file names to the given arrays.
+    
+    No data normalization happens at this step.
+
+    Args:
+      file_names: a list of file names specifying where the images are.
+      num_per_class: the number of images per class. The labels will be assigned
+          according to this parameter.
+      data: the pre-allocated numpy array into which the image data will be
+          inserted.
+      labels: the pre-allocated numpy array into which the image labels will be
+          inserted.
+      disp: a string (e.g. 'test' or 'train') to print the correct information.
+    """
     image_index = 0
     label_id = -1
     for impath in file_names:
