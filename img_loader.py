@@ -33,6 +33,33 @@ class ImageInfo(object):
     self.classnames = []
     self.train_img_files = []
     self.test_img_files = []
+ 
+  @property
+  def img_width(self):
+    """Returns the width of the input images.
+
+    Returns:
+      The input image width.
+    """
+    return self.img_dimensions[0]
+ 
+  @property
+  def img_height(self):
+    """Returns the height of the input images.
+
+    Returns:
+      The input image height.
+    """
+    return self.img_dimensions[1]
+
+  @property
+  def num_channels(self):
+    """Returns the number of image channels the data is using.
+    
+    Returns:
+      The number of image channels for the input data.
+    """
+    return self.img_dimensions[2]
 
   def set_image_dimensions(self, width, height, num_channels):
     """Set the training and testing image dimensions.
@@ -121,9 +148,9 @@ class ImageLoader(object):
     # Data size information:
     self._image_info = image_info
     num_classes = self._image_info.num_classes
-    img_w = self._image_info.img_dimensions[0]
-    img_h = self._image_info.img_dimensions[1]
-    num_channels = self._image_info.img_dimensions[2]
+    img_w = self._image_info.img_width
+    img_h = self._image_info.img_height
+    num_channels = self._image_info.num_channels
     # Initialize the empty train data arrays:
     num_train_imgs = num_classes * self._image_info.num_train_imgs_per_class
     self.train_data = np.empty((num_train_imgs, num_channels, img_w, img_h),
@@ -181,8 +208,8 @@ class ImageLoader(object):
         print 'Loading {} images for class "{}"...'.format(
             disp, self._image_info.classnames[label_id])
       img = Image.open(impath)
-      img = img.resize((self._image_info.img_dimensions[0],
-                        self._image_info.img_dimensions[1]))
+      img = img.resize((self._image_info.img_width,
+                        self._image_info.img_height))
       # TODO: convert only if channel = 1... otherwise, if the image is already
       # grayscale, replicate the intensities into 3 channels.
       img = img.convert('L')
