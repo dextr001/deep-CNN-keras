@@ -6,7 +6,7 @@ from keras.layers.core import Activation, Dense, Dropout, Flatten
 from keras.models import Sequential
 
 
-def build_model(img_channels, img_w, img_h):
+def build_model(img_channels, img_w, img_h, num_classes):
   """Builds and returns a learning model.
 
   Update the code as needed. TODO: possibly parse this from a text file.
@@ -16,6 +16,8 @@ def build_model(img_channels, img_w, img_h):
         or 3 for RGB).
     img_w: the width (in pixels) of the input images.
     img_h: the height of the input images.
+    num_classes: the number of classes that the data will have - this dictates
+        the number of values produced in the output layer.
 
   Returns:
     A deep neural network model.

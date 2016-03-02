@@ -202,11 +202,10 @@ class ImageLoader(object):
     image_index = 0
     label_id = -1
     for impath in file_names:
-      #print '{} {} {}'.format(image_index, label_id, impath)
       if (image_index % num_per_class) == 0:
         label_id += 1
-        print 'Loading {} images for class "{}"...'.format(
-            disp, self._image_info.classnames[label_id])
+        print 'Loading {} images for class "{}" ({})...'.format(
+            disp, self._image_info.classnames[label_id], label_id)
       img = Image.open(impath)
       img = img.resize((self._image_info.img_width,
                         self._image_info.img_height))

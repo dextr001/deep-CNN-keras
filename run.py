@@ -40,7 +40,7 @@ print ('Data successfully loaded in {} seconds.'.format(elapsed))
 
 # Get the deep CNN model for the given data.
 model = build_model(img_info.num_channels, img_info.img_width,
-                    img_info.img_height)
+                    img_info.img_height, img_info.num_classes)
 
 # Compile the model with SGD + momentum.
 print ('Compiling module...')
@@ -54,9 +54,9 @@ print ('Done in {} seconds.'.format(elapsed))
 start_time = time.time()
 if not data_augmentation:
   print ('Training without data augmentation.')
-  model.fit(train_data, train_labels,
-            validation_data=(test_data, test_labels), batch_size=batch_size,
-            nb_epoch=num_epochs, shuffle=True,
+  model.fit(img_loader.train_data, img_loader.train_labels,
+            validation_data=(img_loader.test_data, img_loader.test_labels),
+            batch_size=batch_size, nb_epoch=num_epochs, shuffle=True,
             show_accuracy=True, verbose=1)
 else:
   print ('Training with additional data augmentation.')
