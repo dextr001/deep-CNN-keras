@@ -8,12 +8,33 @@
 #
 # CNN layer classes documentation:
 #   http://keras.io/layers/convolutional/
-#
-#
+
 from img_loader import ImageInfo, ImageLoader
 from keras.optimizers import SGD
 from model import build_model
 import time
+
+
+def elapsed_time(start_time):
+  """Returns the elapsed time, formatted as a string.
+  
+  Args:
+    start_time: the start time (called before timing using time.time()).
+
+  Returns:
+    The elapsed time as a string (e.g. "x seconds" or "x minutes").
+  """
+  elapsed = time.time() - start_time
+  time_units = ['seconds', 'minutes', 'hours', 'days']
+  unit_index = 0
+  intervals = [60, 60, 24]
+  for interval in intervals:
+    if elapsed < interval:
+      break
+    elapsed /= interval
+    unit_index += 1
+  elapsed = round(elapsed, 2)
+  return '{} {}'.format(elapsed, time_units[unit_index])
 
 
 # Hyperparameters:
@@ -25,8 +46,9 @@ decay = 1e-6
 momentum = 0.9
 
 # Set the data parameters and image source paths.
+# TODO: use more clearly-defined image path files.
 img_info = ImageInfo(25, 100, 20)
-img_info.set_image_dimensions(128, 128, 1)  # img width, height, channels
+img_info.set_image_dimensions(64, 64, 1)  # img width, height, channels
 img_info.load_image_classnames('test/classnames.txt')
 img_info.load_train_image_paths('test/trainImNames.txt')
 img_info.load_test_image_paths('test/test1ImNames.txt')
@@ -35,8 +57,7 @@ img_info.load_test_image_paths('test/test1ImNames.txt')
 start_time = time.time()
 img_loader = ImageLoader(img_info)
 img_loader.load_all_images()
-elapsed = round(time.time() - start_time, 2)
-print ('Data successfully loaded in {} seconds.'.format(elapsed))
+print 'Data successfully loaded in {}.'.format(elapsed_time(start_time))
 
 # Get the deep CNN model for the given data.
 model = build_model(img_info.num_channels, img_info.img_width,
@@ -47,8 +68,7 @@ print ('Compiling module...')
 start_time = time.time()
 sgd = SGD(lr=learning_rate, decay=decay, momentum=momentum, nesterov=True)
 model.compile(loss='categorical_crossentropy', optimizer=sgd)
-elapsed = round(time.time() - start_time, 2)
-print ('Done in {} seconds.'.format(elapsed))
+print 'Done in {}.'.format(elapsed_time(start_time))
 
 # Train the model.
 start_time = time.time()
@@ -61,5 +81,4 @@ if not data_augmentation:
 else:
   print ('Training with additional data augmentation.')
   # TODO: implement this!
-elapsed = round(time.time() - start_time, 2)
-print ('Finished training in {} seconds.'.format(elapsed))
+print 'Finished training in {}.'.format(elapsed_time(start_time))
