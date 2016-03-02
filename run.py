@@ -1,7 +1,7 @@
 # Trains a deep CNN on a subset of ImageNet data.
 #
 # Run with GPU:
-#   THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python model.py
+#   THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python run.py [options]
 #
 # This example is from here:
 #   https://github.com/fchollet/keras/blob/master/examples/cifar10_cnn.py
