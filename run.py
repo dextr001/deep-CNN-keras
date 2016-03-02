@@ -49,18 +49,12 @@ def get_elapsed_time(start_time):
   return '{} {}'.format(elapsed, time_units[unit_index])
 
 
-def train_model(params, save_weights_file=None, load_weights_file=None):
+def train_model(params, args):
   """Runs the code to set up data and train a model.
   
   Args:
     params: the ModelParams object contianing the model training parameters.
-    save_weights_file: provide a file name where the trained model will be saved
-        after training is finished. This model can be loaded for further
-        training and testing later.
-    load_weights_file: provide a file name only if there is an existing Keras
-        model to load and train. Otherwise, a new model will be created to fit
-        the training data. If a model is provided, it must already fit the
-        data parameters.
+    args: the arguments from argparse that contains all user-specified options.
   """
   # Set the data parameters and image source paths.
   # TODO: use more clearly-defined image path files.
@@ -81,9 +75,9 @@ def train_model(params, save_weights_file=None, load_weights_file=None):
   # Get the deep CNN model for the given data.
   model = build_model(img_info.num_channels, img_info.img_width,
                       img_info.img_height, img_info.num_classes)
-  if load_weights_file:
-    model.load_weights(load_weights_file)
-    print 'Loaded existing model weights from {}.'.format(load_weights_file)
+  if args.load_weights:
+    model.load_weights(args.load_weights)
+    print 'Loaded existing model weights from {}.'.format(args.load_weights)
   # Compile the model with SGD + momentum.
   print ('Compiling module...')
   start_time = time.time()
@@ -104,9 +98,9 @@ def train_model(params, save_weights_file=None, load_weights_file=None):
     # TODO: implement this!
   print 'Finished training in {}.'.format(get_elapsed_time(start_time))
   # Save the model if that option was specified.
-  if save_weights_file:
-    model.save_weights(save_weights_file)
-    print 'Saved trained model weights to {}.'.format(save_weights_file)
+  if args.save_weights:
+    model.save_weights(args.save_weights)
+    print 'Saved trained model weights to {}.'.format(args.save_weights)
 
 
 if __name__ == '__main__':
@@ -118,5 +112,4 @@ if __name__ == '__main__':
                       help='Load existing weights from this file.')
   args = parser.parse_args()
   params = ModelParams()
-  train_model(params, save_weights_file=args.save_weights,
-              load_weights_file=args.load_weights)
+  train_model(params, args)
