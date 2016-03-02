@@ -15,7 +15,7 @@ from model import build_model
 import time
 
 
-def elapsed_time(start_time):
+def get_elapsed_time(start_time):
   """Returns the elapsed time, formatted as a string.
   
   Args:
@@ -58,7 +58,7 @@ img_info.load_test_image_paths('test/test1ImNames.txt')
 start_time = time.time()
 img_loader = ImageLoader(img_info)
 img_loader.load_all_images()
-print 'Data successfully loaded in {}.'.format(elapsed_time(start_time))
+print 'Data successfully loaded in {}.'.format(get_elapsed_time(start_time))
 
 # Get the deep CNN model for the given data.
 model = build_model(img_info.num_channels, img_info.img_width,
@@ -69,7 +69,7 @@ print ('Compiling module...')
 start_time = time.time()
 sgd = SGD(lr=learning_rate, decay=decay, momentum=momentum, nesterov=True)
 model.compile(loss='categorical_crossentropy', optimizer=sgd)
-print 'Done in {}.'.format(elapsed_time(start_time))
+print 'Done in {}.'.format(get_elapsed_time(start_time))
 
 # Train the model.
 start_time = time.time()
@@ -82,4 +82,4 @@ if not data_augmentation:
 else:
   print ('Training with additional data augmentation.')
   # TODO: implement this!
-print 'Finished training in {}.'.format(elapsed_time(start_time))
+print 'Finished training in {}.'.format(get_elapsed_time(start_time))
