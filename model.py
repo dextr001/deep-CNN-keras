@@ -34,7 +34,7 @@ def build_model(img_channels, img_w, img_h, num_classes):
   model.add(Convolution2D(32, 3, 3))
   model.add(Activation('relu'))
   model.add(MaxPooling2D(pool_size=(2, 2)))
-  model.add(Dropout(0.25))
+  model.add(Dropout(0.5))
   
   # Add another convolution layer:
   model.add(Convolution2D(64, 3, 3, border_mode='same'))
@@ -44,7 +44,7 @@ def build_model(img_channels, img_w, img_h, num_classes):
   model.add(Convolution2D(64, 3, 3))
   model.add(Activation('relu'))
   model.add(MaxPooling2D(pool_size=(2, 2)))
-  model.add(Dropout(0.25))
+  model.add(Dropout(0.5))
   
   # Add a fully-connected layer:
   model.add(Flatten())

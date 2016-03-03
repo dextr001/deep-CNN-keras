@@ -51,10 +51,30 @@ def test_model(args, params):
   if not args.load_weights:
     print 'Cannot test model: no weights provided.'
     return
-  #img_info = ImageInfo(25, 100, 20)
-  #img_info.load_test_image_paths('test/test1ImNames.txt')
-  #model = build_model(img_info.num_channels, img_info.img_width,
-  #                    img_info.img_height, img_info.num_classes)
+  img_info = ImageInfo(params['number_of_classes'],
+                       params['train_imgs_per_class'],
+                       params['test_imgs_per_class'])
+  img_info.load_image_classnames(params['classnames_file'])
+  img_info.load_test_image_paths(params['test_img_paths_file'])
+  # Load the images into memory and preprocess appropriately.
+  start_time = time.time()
+  img_loader = ImageLoader(img_info)
+  img_loader.load_test_images()
+  print 'Test data successfully loaded in {}.'.format(
+      get_elapsed_time(start_time))
+  # Build and compile the model and load its weights from the file.
+  model = build_model(img_info.num_channels, img_info.img_width,
+                      img_info.img_height, img_info.num_classes)
+  model.load_weights(args.load_weights)
+  print ('Compiling module...')
+  start_time = time.time()
+  model.compile()
+  print 'Done in {}.'.format(get_elapsed_time(start_time))
+  # Run the prediction on the test data.
+  start_time = time.time()
+  model.predict(X, batch_size=params['batch_size'], verbose=0)
+  print 'Finished testing in {}.'.format(get_elapsed_time(start_time))
+
 
 def train_model(args, params):
   """Trains a model on the training data.

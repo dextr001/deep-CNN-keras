@@ -171,20 +171,28 @@ class ImageLoader(object):
     The image data is stored in the train_data/train_labels and test_data/
     test_labels numpy arrays, and formatted appropriately for the classifier.
     """
+    self._load_train_images()
+    self.load_test_images()
+
+  def _load_train_images(self):
+    """Loads all training images into memory and normalizes the data."""
     self._load_images(
         self._image_info.train_img_files,
         self._image_info.num_train_imgs_per_class,
         self.train_data, self.train_labels, 'train')
+    self.train_data = self.train_data.astype('float32') / 255
+    self.train_labels = np_utils.to_categorical(self.train_labels,
+                                                self._image_info.num_classes)
+
+  def load_test_images(self):
+    """Loads all test images into memory and normalizes the data."""
     self._load_images(
         self._image_info.test_img_files,
         self._image_info.num_test_imgs_per_class,
         self.test_data, self.test_labels, 'test')
-    # Normalize the data as needed:
-    self.train_data = self.train_data.astype('float32') / 255
     self.test_data = self.test_data.astype('float32') / 255
-    num_classes = self._image_info.num_classes
-    self.train_labels = np_utils.to_categorical(self.train_labels, num_classes)
-    self.test_labels = np_utils.to_categorical(self.test_labels, num_classes)
+    self.test_labels = np_utils.to_categorical(self.test_labels,
+                                               self._image_info.num_classes)
 
   def _load_images(self, file_names, num_per_class, data, labels, disp):
     """Loads the images from the given file names to the given arrays.
