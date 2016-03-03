@@ -14,6 +14,7 @@ from img_loader import ImageInfo, ImageLoader
 from keras.optimizers import SGD
 from model import build_model
 from model_params import ModelParams
+import numpy as np
 import time
 
 
@@ -54,6 +55,7 @@ def test_model(args, params):
   img_info = ImageInfo(params['number_of_classes'],
                        params['train_imgs_per_class'],
                        params['test_imgs_per_class'])
+  img_info.set_image_dimensions(params['img_dimensions'])
   img_info.load_image_classnames(params['classnames_file'])
   img_info.load_test_image_paths(params['test_img_paths_file'])
   # Load the images into memory and preprocess appropriately.
@@ -68,12 +70,28 @@ def test_model(args, params):
   model.load_weights(args.load_weights)
   print ('Compiling module...')
   start_time = time.time()
-  model.compile()
+  sgd = SGD(lr=params['learning_rate'], decay=params['decay'],
+            momentum=params['momentum'], nesterov=True)
+  model.compile(loss='categorical_crossentropy', optimizer=sgd)
   print 'Done in {}.'.format(get_elapsed_time(start_time))
-  # Run the prediction on the test data.
+  # Run the evaluation on the test data.
   start_time = time.time()
-  model.predict(X, batch_size=params['batch_size'], verbose=0)
+  predictions = model.predict_classes(img_loader.test_data,
+                                      batch_size=params['batch_size'])
+  scores = model.predict(img_loader.test_data, batch_size=params['batch_size'])
   print 'Finished testing in {}.'.format(get_elapsed_time(start_time))
+  # Compute the percentage of correct classifications.
+  num_predicted = len(predictions)
+  num_correct = 0
+  for i in range(num_predicted):
+    predicted_class = predictions[i]
+    correct = np.nonzero(img_loader.test_labels[i])
+    correct = correct[0][0]
+    if predicted_class == correct:
+      num_correct += 1
+  accuracy = round(float(num_correct) / float(num_predicted), 4)
+  print 'Predicted classes for {} images with accuracy = {}'.format(
+      num_predicted, accuracy)
 
 
 def train_model(args, params):
