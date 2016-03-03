@@ -19,12 +19,65 @@ import time
 class ModelParams(object):
   """An object that defines a model's training parameters."""
 
-  batch_size = 32
-  num_epochs = 1 #50 #200
-  data_augmentation = False
-  learning_rate = 0.01
-  decay = 1e-6
-  momentum = 0.9
+  def __init__(self):
+    """Sets up default values for each of the configuration values."""
+    # Initialize all required config options mapping to 'None':
+    config_params = [
+      'classnames_file',
+      'train_img_paths_file',
+      'test_img_paths_file',
+      'number_of_classes',
+      'train_imgs_per_class',
+      'test_imgs_per_class',
+      'img_dimensions'
+    ]
+    self._params = {param: None for param in config_params}
+    # Initialize default hyperparameters:
+    self._params['batch_size'] = 32
+    self._params['num_epochs'] = 10
+    self._params['learning_rate'] = 0.01
+    self._params['decay'] = 1e-6
+    self._params['momentum'] = 0.9
+
+  def read_config_file(self, fname):
+    """Reads the config parameters from the given config file.
+
+    Args:
+      fname: the filename of a correctly-formatted configuration file.
+
+    Returns:
+      False if any of the required parameters was not set.
+    """
+    config = open(fname, 'r')
+    line_num = 0
+    for line in config:
+      line_num += 1
+      line = line.strip()
+      if len(line) == 0 or line.startswith('#'):
+        continue
+      parts = line.split()
+      if len(parts) < 2:
+        print 'Error: invalid config value "{}" on line {} of {}'.format(
+            line, line_num, fname)
+        continue
+      key = parts[0]
+      key = key.replace(':', '')
+      value = ' '.join(parts[1:])
+      if key in self._params:
+        try:
+          self._params[key] = eval(value)
+        except:
+          print 'Error: invalid config value "{}" on line {} of {}'.format(
+              value, line_num, fname)
+      else:
+        print 'Error: unknown config key "{}" on line {} of {}'.format(
+            key, line_num, fname)
+    # Check that all parameters were defined.
+    for key in self._params:
+      if not self._params[key]:
+        print 'Error: config parameter "{}" was not specified.'.format(key)
+        return False
+    return True
 
 
 def get_elapsed_time(start_time):
@@ -49,16 +102,34 @@ def get_elapsed_time(start_time):
   return '{} {}'.format(elapsed, time_units[unit_index])
 
 
-def train_model(params, args):
-  """Runs the code to set up data and train a model.
+def test_model(args):
+  """Tests a model on the test data set.
   
   Args:
-    params: the ModelParams object contianing the model training parameters.
+    args: the arguments from argparse that contains all user-specified options.
+        The model weights that are to be tested must be provided.
+  """
+  if not args.load_weights:
+    print 'Cannot test model: no weights provided.'
+    return
+  #img_info = ImageInfo(25, 100, 20)
+  #img_info.load_test_image_paths('test/test1ImNames.txt')
+  #model = build_model(img_info.num_channels, img_info.img_width,
+  #                    img_info.img_height, img_info.num_classes)
+
+def train_model(args):
+  """Trains a model on the training data.
+
+  The test data is used to report validation accuracy after each training epoch.
+  The model can be trained from scratch, or existing weights can be updated.
+  
+  Args:
     args: the arguments from argparse that contains all user-specified options.
   """
   # Set the data parameters and image source paths.
   # TODO: use more clearly-defined image path files.
   # TODO: all of these numbers should be parameters.
+  params = ModelParams()
   img_info = ImageInfo(25, 100, 20)
 #  img_info = ImageInfo(25, 1160, 20)
   img_info.set_image_dimensions(128, 128, 1)  # img width, height, channels
@@ -106,10 +177,20 @@ def train_model(params, args):
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
       description='Run a deep neural network model using Keras.')
+  parser.add_argument('params_file',
+                      help='The file containing data paths and model params.')
+  parser.add_argument('--test', dest='test_mode', action='store_true',
+                      help='Test the model with weights (-load-weights).')
   parser.add_argument('-save-weights', dest='save_weights', required=False,
                       help='Save the trained weights to this file.')
   parser.add_argument('-load-weights', dest='load_weights', required=False,
                       help='Load existing weights from this file.')
   args = parser.parse_args()
   params = ModelParams()
-  train_model(params, args)
+  if not params.read_config_file(args.params_file):
+    print 'Missing configuration values. Cannot continue.'
+    exit(0)
+#  if args.test_mode:
+#    test_model(args)
+#  else:
+#    train_model(args)
