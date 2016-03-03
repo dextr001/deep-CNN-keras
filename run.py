@@ -39,6 +39,22 @@ class ModelParams(object):
     self._params['decay'] = 1e-6
     self._params['momentum'] = 0.9
 
+  def __getitem__(self, key):
+    """Overload brackets operator to get config values.
+  
+    Usage: e.g. params['classnames_file']
+
+    Args:
+      key: the key (name) of the config value.
+
+    Returns:
+      The value (if available) of that configuration parameter. If the key is
+      invalid or no config value was specified, returns None.
+    """
+    if key in self._params:
+      return self._params[key]
+    return None
+
   def read_config_file(self, fname):
     """Reads the config parameters from the given config file.
 
