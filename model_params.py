@@ -50,6 +50,7 @@ class ModelParams(object):
     Returns:
       False if any of the required parameters was not set.
     """
+    # TODO: maybe use more clearly-defined image path files.
     config = open(fname, 'r')
     line_num = 0
     for line in config:

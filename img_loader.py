@@ -61,18 +61,20 @@ class ImageInfo(object):
     """
     return self.img_dimensions[2]
 
-  def set_image_dimensions(self, width, height, num_channels):
+  def set_image_dimensions(self, dimensions):#width, height, num_channels):
     """Set the training and testing image dimensions.
     
     All images fed into the neural network, for training and testing, will be
     formatted to match these dimensions.
 
     Args:
-      width: a positive integer indicating the width of the images.
-      height: a positive integer indicating the height of the images.
-      num_channels: the number of channels to use. This number should be 1
-          for grayscale training images or 3 to train on full RGB data.
+      dimensions: a tuple containing the following three values:
+          width - a positive integer indicating the width of the images.
+          height - a positive integer indicating the height of the images.
+          num_channels - the number of channels to use. This number should be 1
+              for grayscale training images or 3 to train on full RGB data.
     """
+    width, height, num_channels = dimensions
     # Make sure all the data is valid.
     if width <= 0:
       width = self._DEFAULT_IMG_DIMENSIONS[0]

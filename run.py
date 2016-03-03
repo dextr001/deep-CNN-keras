@@ -39,12 +39,14 @@ def get_elapsed_time(start_time):
   return '{} {}'.format(elapsed, time_units[unit_index])
 
 
-def test_model(args):
+def test_model(args, params):
   """Tests a model on the test data set.
   
   Args:
     args: the arguments from argparse that contains all user-specified options.
         The model weights that are to be tested must be provided.
+    params: a ModelParams object containing the appropriate data file paths and
+        data parameters.
   """
   if not args.load_weights:
     print 'Cannot test model: no weights provided.'
@@ -54,7 +56,7 @@ def test_model(args):
   #model = build_model(img_info.num_channels, img_info.img_width,
   #                    img_info.img_height, img_info.num_classes)
 
-def train_model(args):
+def train_model(args, params):
   """Trains a model on the training data.
 
   The test data is used to report validation accuracy after each training epoch.
@@ -62,48 +64,44 @@ def train_model(args):
   
   Args:
     args: the arguments from argparse that contains all user-specified options.
+    params: a ModelParams object containing the appropriate data file paths,
+        data parameters, and training hyperparameters.
   """
   # Set the data parameters and image source paths.
-  # TODO: use more clearly-defined image path files.
-  # TODO: all of these numbers should be parameters.
-  params = ModelParams()
-  img_info = ImageInfo(25, 100, 20)
-#  img_info = ImageInfo(25, 1160, 20)
-  img_info.set_image_dimensions(128, 128, 1)  # img width, height, channels
-  img_info.load_image_classnames('test/classnames.txt')
-  img_info.load_train_image_paths('test/trainImNames.txt')
-#  img_info.load_train_image_paths('test/extraTrainImNames.txt')
-  img_info.load_test_image_paths('test/test1ImNames.txt')
-  
+  img_info = ImageInfo(params['number_of_classes'],
+                       params['train_imgs_per_class'],
+                       params['test_imgs_per_class'])
+  img_info.set_image_dimensions(params['img_dimensions'])
+  img_info.load_image_classnames(params['classnames_file'])
+  img_info.load_train_image_paths(params['train_img_paths_file'])
+  img_info.load_test_image_paths(params['test_img_paths_file'])
   # Load the images into memory and preprocess appropriately.
   start_time = time.time()
   img_loader = ImageLoader(img_info)
   img_loader.load_all_images()
   print 'Data successfully loaded in {}.'.format(get_elapsed_time(start_time))
   # Get the deep CNN model for the given data.
+  # TODO: add option to load model from a saved file.
   model = build_model(img_info.num_channels, img_info.img_width,
                       img_info.img_height, img_info.num_classes)
   if args.load_weights:
     model.load_weights(args.load_weights)
     print 'Loaded existing model weights from {}.'.format(args.load_weights)
   # Compile the model with SGD + momentum.
+  # TODO: allow options to change the optimizer.
   print ('Compiling module...')
   start_time = time.time()
-  sgd = SGD(lr=params.learning_rate, decay=params.decay,
-            momentum=params.momentum, nesterov=True)
+  sgd = SGD(lr=params['learning_rate'], decay=params['decay'],
+            momentum=params['momentum'], nesterov=True)
   model.compile(loss='categorical_crossentropy', optimizer=sgd)
   print 'Done in {}.'.format(get_elapsed_time(start_time))
   # Train the model.
   start_time = time.time()
-  if not params.data_augmentation:
-    print ('Training without data augmentation.')
-    model.fit(img_loader.train_data, img_loader.train_labels,
-              validation_data=(img_loader.test_data, img_loader.test_labels),
-              batch_size=params.batch_size, nb_epoch=params.num_epochs,
-              shuffle=True, show_accuracy=True, verbose=1)
-  else:
-    print ('Training with additional data augmentation.')
-    # TODO: implement this!
+  # TODO: implement data augmentation option.
+  model.fit(img_loader.train_data, img_loader.train_labels,
+            validation_data=(img_loader.test_data, img_loader.test_labels),
+            batch_size=params['batch_size'], nb_epoch=params['num_epochs'],
+            shuffle=True, show_accuracy=True, verbose=1)
   print 'Finished training in {}.'.format(get_elapsed_time(start_time))
   # Save the model if that option was specified.
   if args.save_weights:
@@ -127,7 +125,7 @@ if __name__ == '__main__':
   if not params.read_config_file(args.params_file):
     print 'Missing configuration values. Cannot continue.'
     exit(0)
-#  if args.test_mode:
-#    test_model(args)
-#  else:
-#    train_model(args)
+  if args.test_mode:
+    test_model(args, params)
+  else:
+    train_model(args, params)
