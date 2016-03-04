@@ -71,6 +71,9 @@ def get_model(args, img_info):
 
 def test_model(args, params):
   """Tests a model on the test data set.
+
+  Prints out the final accuracy of the predictions on the test data. Also prints
+  a normalized confusion matrix if that argument is specified by the user.
   
   Args:
     args: the arguments from argparse that contains all user-specified options.
@@ -108,15 +111,23 @@ def test_model(args, params):
   # Compute the percentage of correct classifications.
   num_predicted = len(predictions)
   num_correct = 0
+  confusion_matrix = np.zeros((25, 25))
   for i in range(num_predicted):
     predicted_class = predictions[i]
     correct = np.nonzero(img_loader.test_labels[i])
     correct = correct[0][0]
+    confusion_matrix[correct][predicted_class] += 1
     if predicted_class == correct:
       num_correct += 1
   accuracy = round(float(num_correct) / float(num_predicted), 4)
   print 'Predicted classes for {} images with accuracy = {}'.format(
       num_predicted, accuracy)
+  if args.confusion_matrix:
+    # Normalize and print the matrix.
+    per_row_max = confusion_matrix.max(axis = 1)
+    confusion_matrix = confusion_matrix.transpose() / per_row_max
+    confusion_matrix = confusion_matrix.transpose()
+    print confusion_matrix
 
 
 def train_model(args, params):
@@ -178,6 +189,9 @@ if __name__ == '__main__':
                       help='The file containing data paths and model params.')
   parser.add_argument('--test', dest='test_mode', action='store_true',
                       help='Test the model with weights (-load-weights).')
+  parser.add_argument('--confusion-matrix', dest='confusion_matrix',
+                      action='store_true',
+                      help='Prints a confusion matrix (test mode only).')
   parser.add_argument('-load-model', dest='load_model', required=False,
                       help='Load an existing model from this file.')
   parser.add_argument('-save-model', dest='save_model', required=False,
