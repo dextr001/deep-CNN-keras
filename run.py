@@ -127,6 +127,16 @@ def test_model(args, params):
     per_row_max = confusion_matrix.max(axis = 1)
     confusion_matrix = confusion_matrix.transpose() / per_row_max
     confusion_matrix = confusion_matrix.transpose()
+    output = ''
+    for row in confusion_matrix:
+      row_list = list(row)
+      output += ' '.join(map(str, row_list)) + '\n'
+    fname = raw_input(
+        'Enter file name for confusion matrix (leave blank to cancel): ')
+    if fname:
+      f = open(fname, 'w')
+      f.write(output)
+      f.close()
     print confusion_matrix
 
 
