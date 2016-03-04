@@ -4,6 +4,22 @@
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.core import Activation, Dense, Dropout, Flatten
 from keras.models import Sequential
+from keras.optimizers import SGD
+
+
+def compile_model(model, params):
+  """Compiles the model with the defined optimizer.
+
+  Update the code as needed to change the optimizer.
+
+  Args:
+    model: the Keras model to be compiled.
+    params: a ModelParams object that specifies the hyperparameters for the
+        optimizer.
+  """
+  sgd = SGD(lr=params['learning_rate'], decay=params['decay'],
+            momentum=params['momentum'], nesterov=True)
+  model.compile(loss='categorical_crossentropy', optimizer=sgd)
 
 
 def build_model(img_channels, img_w, img_h, num_classes):

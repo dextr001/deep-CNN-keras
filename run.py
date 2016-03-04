@@ -11,8 +11,8 @@
 
 import argparse
 from img_loader import ImageInfo, ImageLoader
-from keras.optimizers import SGD
-from model import build_model
+from keras.models import model_from_json
+from model import build_model, compile_model
 from model_params import ModelParams
 import numpy as np
 import time
@@ -40,6 +40,35 @@ def get_elapsed_time(start_time):
   return '{} {}'.format(elapsed, time_units[unit_index])
 
 
+def get_model(args, img_info):
+  """Build the deep CNN model for the given data or load it from file.
+
+  The model's weights are also loaded from a file if that option is specified.
+  
+  Args:
+    args: the argparse arguments that specify whether the model should be newly
+        built or loaded from a file.
+    img_info: an ImageInfo object that contains information about the data.
+        If the model is built from scratch, these values will be used to set the
+        model's input layer dimensions.
+  """
+  model = None
+  # Load the model from a file or build it.
+  if args.load_model:
+    f = open(args.load_model, 'r')
+    model = model_from_json(f.read())
+    f.close()
+    print 'Loaded existing model from {}.'.format(args.load_model)
+  else:
+    model = build_model(img_info.num_channels, img_info.img_width,
+                        img_info.img_height, img_info.num_classes)
+  # If weights are provided, load them from a file here.
+  if args.load_weights:
+    model.load_weights(args.load_weights)
+    print 'Loaded existing model weights from {}.'.format(args.load_weights)
+  return model
+
+
 def test_model(args, params):
   """Tests a model on the test data set.
   
@@ -64,15 +93,11 @@ def test_model(args, params):
   img_loader.load_test_images()
   print 'Test data successfully loaded in {}.'.format(
       get_elapsed_time(start_time))
-  # Build and compile the model and load its weights from the file.
-  model = build_model(img_info.num_channels, img_info.img_width,
-                      img_info.img_height, img_info.num_classes)
-  model.load_weights(args.load_weights)
+  # Load the model and its weights and compile it.
+  model = get_model(args, img_info)
   print ('Compiling module...')
   start_time = time.time()
-  sgd = SGD(lr=params['learning_rate'], decay=params['decay'],
-            momentum=params['momentum'], nesterov=True)
-  model.compile(loss='categorical_crossentropy', optimizer=sgd)
+  compile_model(model, params)
   print 'Done in {}.'.format(get_elapsed_time(start_time))
   # Run the evaluation on the test data.
   start_time = time.time()
@@ -118,20 +143,19 @@ def train_model(args, params):
   img_loader = ImageLoader(img_info)
   img_loader.load_all_images()
   print 'Data successfully loaded in {}.'.format(get_elapsed_time(start_time))
-  # Get the deep CNN model for the given data.
-  # TODO: add option to load model from a saved file.
-  model = build_model(img_info.num_channels, img_info.img_width,
-                      img_info.img_height, img_info.num_classes)
-  if args.load_weights:
-    model.load_weights(args.load_weights)
-    print 'Loaded existing model weights from {}.'.format(args.load_weights)
-  # Compile the model with SGD + momentum.
+  # Load the model and (possibly) its weights.
+  model = get_model(args, img_info)
+  # Save the model if that option was specified.
+  if args.save_model:
+    f = open(args.save_model, 'w')
+    f.write(model.to_json())
+    f.close()
+    print 'Saved model architecture to {}.'.format(args.save_model)
+  # Compile the model.
   # TODO: allow options to change the optimizer.
   print ('Compiling module...')
   start_time = time.time()
-  sgd = SGD(lr=params['learning_rate'], decay=params['decay'],
-            momentum=params['momentum'], nesterov=True)
-  model.compile(loss='categorical_crossentropy', optimizer=sgd)
+  compile_model(model, params)
   print 'Done in {}.'.format(get_elapsed_time(start_time))
   # Train the model.
   start_time = time.time()
@@ -141,7 +165,7 @@ def train_model(args, params):
             batch_size=params['batch_size'], nb_epoch=params['num_epochs'],
             shuffle=True, show_accuracy=True, verbose=1)
   print 'Finished training in {}.'.format(get_elapsed_time(start_time))
-  # Save the model if that option was specified.
+  # Save the weights if that option was specified.
   if args.save_weights:
     model.save_weights(args.save_weights)
     print 'Saved trained model weights to {}.'.format(args.save_weights)
@@ -154,10 +178,14 @@ if __name__ == '__main__':
                       help='The file containing data paths and model params.')
   parser.add_argument('--test', dest='test_mode', action='store_true',
                       help='Test the model with weights (-load-weights).')
-  parser.add_argument('-save-weights', dest='save_weights', required=False,
-                      help='Save the trained weights to this file.')
+  parser.add_argument('-load-model', dest='load_model', required=False,
+                      help='Load an existing model from this file.')
+  parser.add_argument('-save-model', dest='save_model', required=False,
+                      help='Save the model architecture to this file.')
   parser.add_argument('-load-weights', dest='load_weights', required=False,
                       help='Load existing weights from this file.')
+  parser.add_argument('-save-weights', dest='save_weights', required=False,
+                      help='Save the trained weights to this file.')
   args = parser.parse_args()
   params = ModelParams()
   if not params.read_config_file(args.params_file):
