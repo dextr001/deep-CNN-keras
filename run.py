@@ -124,7 +124,7 @@ def test_model(args, params):
       num_predicted, accuracy)
   if args.confusion_matrix:
     # Normalize and print the matrix.
-    per_row_max = confusion_matrix.max(axis = 1)
+    per_row_max = confusion_matrix.sum(axis = 1)
     confusion_matrix = confusion_matrix.transpose() / per_row_max
     confusion_matrix = confusion_matrix.transpose()
     output = ''
