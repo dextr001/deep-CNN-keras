@@ -90,18 +90,18 @@ def test_model(args, params):
   img_info.set_image_dimensions(params['img_dimensions'])
   img_info.load_image_classnames(params['classnames_file'])
   img_info.load_test_image_paths(params['test_img_paths_file'])
-  # Load the images into memory and preprocess appropriately.
-  start_time = time.time()
-  img_loader = ImageLoader(img_info)
-  img_loader.load_test_images()
-  print 'Test data successfully loaded in {}.'.format(
-      get_elapsed_time(start_time))
   # Load the model and its weights and compile it.
   model = get_model(args, img_info)
   print ('Compiling module...')
   start_time = time.time()
   compile_model(model, params)
   print 'Done in {}.'.format(get_elapsed_time(start_time))
+  # Load the test images into memory and preprocess appropriately.
+  start_time = time.time()
+  img_loader = ImageLoader(img_info)
+  img_loader.load_test_images()
+  print 'Test data successfully loaded in {}.'.format(
+      get_elapsed_time(start_time))
   # Run the evaluation on the test data.
   start_time = time.time()
   predictions = model.predict_classes(img_loader.test_data,
@@ -159,11 +159,6 @@ def train_model(args, params):
   img_info.load_image_classnames(params['classnames_file'])
   img_info.load_train_image_paths(params['train_img_paths_file'])
   img_info.load_test_image_paths(params['test_img_paths_file'])
-  # Load the images into memory and preprocess appropriately.
-  start_time = time.time()
-  img_loader = ImageLoader(img_info)
-  img_loader.load_all_images()
-  print 'Data successfully loaded in {}.'.format(get_elapsed_time(start_time))
   # Load the model and (possibly) its weights.
   model = get_model(args, img_info)
   # Save the model if that option was specified.
@@ -173,11 +168,15 @@ def train_model(args, params):
     f.close()
     print 'Saved model architecture to {}.'.format(args.save_model)
   # Compile the model.
-  # TODO: allow options to change the optimizer.
   print ('Compiling module...')
   start_time = time.time()
   compile_model(model, params)
   print 'Done in {}.'.format(get_elapsed_time(start_time))
+  # Load the images into memory and preprocess appropriately.
+  start_time = time.time()
+  img_loader = ImageLoader(img_info)
+  img_loader.load_all_images()
+  print 'Data successfully loaded in {}.'.format(get_elapsed_time(start_time))
   # Train the model.
   start_time = time.time()
   # TODO: implement data augmentation option.

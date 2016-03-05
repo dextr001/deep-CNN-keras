@@ -45,6 +45,7 @@ def compile_model(model, params):
     params: a ModelParams object that specifies the hyperparameters for the
         optimizer.
   """
+  # TODO: allow options to change the optimizer.
   sgd = SGD(lr=params['learning_rate'], decay=params['decay'],
             momentum=params['momentum'], nesterov=True)
   model.compile(loss='categorical_crossentropy', optimizer=sgd)
