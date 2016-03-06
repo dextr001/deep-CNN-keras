@@ -112,6 +112,7 @@ def test_model(args, params):
   num_predicted = len(predictions)
   num_correct = 0
   confusion_matrix = np.zeros((25, 25))
+  misclassified = []
   for i in range(num_predicted):
     predicted_class = predictions[i]
     correct = np.nonzero(img_loader.test_labels[i])
@@ -119,6 +120,10 @@ def test_model(args, params):
     confusion_matrix[correct][predicted_class] += 1
     if predicted_class == correct:
       num_correct += 1
+    else:
+      # Save the image file name, its correct class, and its predicted class.
+      misclassified.append(
+          (img_info.test_img_files[i], correct, predicted_class))
   accuracy = round(float(num_correct) / float(num_predicted), 4)
   print 'Predicted classes for {} images with accuracy = {}'.format(
       num_predicted, accuracy)
@@ -131,13 +136,18 @@ def test_model(args, params):
     for row in confusion_matrix:
       row_list = list(row)
       output += ' '.join(map(str, row_list)) + '\n'
-    fname = raw_input(
-        'Enter file name for confusion matrix (leave blank to cancel): ')
-    if fname:
-      f = open(fname, 'w')
-      f.write(output)
-      f.close()
-    print confusion_matrix
+    f = open(args.confusion_matrix, 'w')
+    f.write(output)
+    f.close()
+    print 'Saved confusion matrix to {}.'.format(args.confusion_matrix)
+  if args.report_misclassified:
+    f = open(args.report_misclassified, 'w')
+    for example in misclassified:
+      img_path, img_class, predicted_class = example
+      f.write('{} {} {}\n'.format(img_path, img_class, predicted_class))
+    f.close()
+    print 'Saved misclassified images report to {}.'.format(
+        args.report_misclassified)
 
 
 def train_model(args, params):
@@ -198,9 +208,14 @@ if __name__ == '__main__':
                       help='The file containing data paths and model params.')
   parser.add_argument('--test', dest='test_mode', action='store_true',
                       help='Test the model with weights (-load-weights).')
-  parser.add_argument('--confusion-matrix', dest='confusion_matrix',
-                      action='store_true',
-                      help='Prints a confusion matrix (test mode only).')
+  parser.add_argument('-confusion-matrix', dest='confusion_matrix',
+                      required=False,
+                      help=('Saves a confusion matrix to the given file ' +
+                            '(test mode only).'))
+  parser.add_argument('-report-misclassified', dest='report_misclassified',
+                      required=False,
+                      help=('Saves a list of misclassified images to the ' +
+                            'given file (test mode only).'))
   parser.add_argument('-load-model', dest='load_model', required=False,
                       help='Load an existing model from this file.')
   parser.add_argument('-save-model', dest='save_model', required=False,
