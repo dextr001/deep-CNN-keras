@@ -95,7 +95,14 @@ dog
 Setting Up the Config File
 -----
 
-TODO
+Edit the <code>params.config</code> file (or write your own) with your specific data information. This file is formatted as <code>key: value</code> pairs on each line. All of the values must be defined, otherwise the configuration file will not be accepted. The values must be explicity defined as valid Python 2 types (e.g. a string must be in quotes, a tuple must be of the form <code>(val1, val2, val3)</code>, etc. Here is what you need to add:
+
+<ol>
+  <li> Point to the data files you defined above. Specifically, set up the appropriate <code>classnames_file</code>, <code>train_img_paths_file</code>, and <code>test_img_paths_file</code>. Note that these file paths must be in quotes (i.e. they will be interpreted as Python strings). </li>
+  <li> Set the data parameters: <code>number_of_classes</code>, <code>train_imgs_per_class</code>, and <code>test_imgs_per_class</code>. Following the example files above, these values would be 2, 5, and 2, respectively. </li>
+  <li> Set the image dimensions (<code>img_dimensions</code>). All images will be resized to these dimensions (width, height, number of channels) before being fed into the CNN. <b>Currently, only 1 channel is supported (grayscale).</b> This is a TODO. </li>
+  <li> Optionally, set the training hyperparameters as desired (<code>batch_size</code>, <code>num_epochs</code>, <code>learning_rate</code>, <code>decay</code>, and <code>momentum</code>). </li>
+</ol>
 
 
 Defining, Saving, and Loading a Module
