@@ -37,11 +37,11 @@ If you want to use the GPU (which is pretty much necessary if you want to train 
 Using the Code
 -----
 
-This code must be run in a Python 2 environment with all of the required modules listed above installed.
+This code must be run in a Python 2 environment with all of the required modules listed above installed. The <code>run.py</code> script is what allows you to train or test a module.
 
-The <code>run.py</code> script is what allows you to train or test a module. Run as follows:
+Run on CPU: <code>python run.py \<config-file\> [options]</code>
 
-<code>HEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python run.py \<config-file\> [options]</code>
+Run on GPU (requires CUDA): <code>./run_gpu \<config-file\> [options]</code>
 
 The config file must be provided (see below). Other options are as follows:
 
