@@ -39,9 +39,21 @@ Using the Code
 
 This code must be run in a Python 2 environment with all of the required modules listed above installed.
 
-The <code>run.py</code> script is what allows you to train or test a module.
+The <code>run.py</code> script is what allows you to train or test a module. Run as follows:
 
-TODO
+<code>HEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python run.py \<config-file\> [options]</code>
+
+The config file must be provided (see below). Other options are as follows:
+
+<ul>
+  <li> <code>-load-model _file_</code> Loads an existing model architecture from the given file (<code>_file_</code>). The saved architecture must match the input image size (specified by the config file). If this parameter is not provided, a new model will be built as defined in <code>model.py</code>. </li>
+  <li> <code>-save-model _file_</code> Saves the model architecture used for training to the given file (training mode only). You may want to save the model after training to test it later. </li>
+  <li> <code>-load-weights _file_</code> Loads existing weights from this file. The weights must match the architecture of the model being used. You can load weights for a training run to fine-tune the model's parameters. </li>
+  <li> <code>-save-weights _file_</code> Saves the trained weights to this file (training mode only). You should save weights if you wish to test the trained model later. </li>
+  <li> <code>--test</code> Runs a test on a model with existing weights instead of training. This option requires the <code>-load-weights</code> to be set. You may also want to explicity load the model (<code>-load-model</code>) that you used for training. </li>
+  <li> <code>-confusion-matrix _file_</code> Saves a confusion matrix of the test results to the given file (test mode only). </li>
+  <li> <code>-report-misclassified _file_</code> Saves a list of misclassified images to the given file (test mode only). Each line of this file will contain the path of a misclassified image, followed by its correct (ground truth) class, and then the class that was incorrectly predicted by the model. </li>
+</ul>
 
 
 Preparing Your Data
