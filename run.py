@@ -111,7 +111,8 @@ def test_model(args, params):
   # Compute the percentage of correct classifications.
   num_predicted = len(predictions)
   num_correct = 0
-  confusion_matrix = np.zeros((25, 25))
+  num_classes = params['number_of_classes']
+  confusion_matrix = np.zeros((num_classes, num_classes))
   misclassified = []
   for i in range(num_predicted):
     predicted_class = predictions[i]
