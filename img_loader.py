@@ -221,8 +221,14 @@ class ImageLoader(object):
                         self._image_info.img_height))
       # TODO: convert only if channel = 1... otherwise, if the image is already
       # grayscale, replicate the intensities into 3 channels.
-      img = img.convert('L')
+      if self._image_info.num_channels != 3:
+        img = img.convert('L')
       img_arr = np.asarray(img, dtype='float32')
-      data[image_index, 0, :, :] = img_arr
+      if self._image_info.num_channels == 3:
+        data[image_index, 0, :, :] = img_arr[:, :, 0]
+        data[image_index, 1, :, :] = img_arr[:, :, 1]
+        data[image_index, 2, :, :] = img_arr[:, :, 2]
+      else:
+        data[image_index, 0, :, :] = img_arr
       labels[image_index] = label_id
       image_index += 1
