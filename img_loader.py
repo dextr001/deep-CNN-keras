@@ -12,8 +12,7 @@ class ImageInfo(object):
 
   _DEFAULT_IMG_DIMENSIONS = (256, 256, 1)
 
-  def __init__(self, num_classes, num_train_imgs_per_class,
-               num_test_imgs_per_class):
+  def __init__(self, num_classes):
     """Sets up the initial data variables and data set sizes.
 
     Args:
@@ -26,13 +25,16 @@ class ImageInfo(object):
     """
     # Set the data size values.
     self.num_classes = num_classes
-    self.num_train_imgs_per_class = num_train_imgs_per_class
-    self.num_test_imgs_per_class = num_test_imgs_per_class
     # Initialize the data lists.
     self.img_dimensions = self._DEFAULT_IMG_DIMENSIONS
     self.classnames = []
-    self.train_img_files = []
-    self.test_img_files = []
+    self.train_img_files = {}
+    self.test_img_files = {}
+    for i in range(self.num_classes):
+      self.train_img_files[i] = []
+      self.test_img_files[i] = []
+    self.num_train_images = 0
+    self.num_test_images = 0
  
   @property
   def img_width(self):
@@ -93,7 +95,13 @@ class ImageInfo(object):
     Args:
       fname: the name of the file containing the list of class names.
     """
-    self._read_file_data(fname, self.classnames)
+    classnames_file = open(fname, 'r')
+    for line in classnames_file:
+      line = line.strip()
+      if len(line) == 0 or line.startswith('#'):
+        continue
+      self.classnames.append(line)
+    classnames_file.close()
 
   def load_train_image_paths(self, fname):
     """Reads the image paths for the training data from the given file.
@@ -104,7 +112,7 @@ class ImageInfo(object):
     Args:
       fname: the name of the file containing the training image paths.
     """
-    self._read_file_data(fname, self.train_img_files)
+    self.num_train_images = self._read_file_data(fname, self.train_img_files)
 
   def load_test_image_paths(self, fname):
     """Reads the image paths for the test data from the given file.
@@ -115,7 +123,7 @@ class ImageInfo(object):
     Args:
       fname: the name of the file containing the test image paths.
     """
-    self._read_file_data(fname, self.test_img_files)
+    self.num_test_images = self._read_file_data(fname, self.test_img_files)
 
   def _read_file_data(self, fname, destination):
     """Reads the data of the given file into the destination list.
@@ -125,15 +133,23 @@ class ImageInfo(object):
 
     Args:
       fname: the name of the file to read.
-      destination: a list into which the file's data will be put line by line.
+      destination: a dictionary into which the file's data will be put line by line.
+
+    Returns:
+      The number of image paths that were provided for this data batch.
     """
     paths_file = open(fname, 'r')
+    num_images = 0
     for line in paths_file:
-      impath = line.strip()
-      if len(impath) == 0 or impath.startswith('#'):
+      line = line.strip()
+      if len(line) == 0 or line.startswith('#'):
         continue
-      destination.append(impath)
+      impath, classnum = line.split()
+      classnum = int(classnum)
+      destination[classnum].append(impath)
+      num_images += 1
     paths_file.close()
+    return num_images
 
 
 class ImageLoader(object):
@@ -154,12 +170,12 @@ class ImageLoader(object):
     img_h = self._image_info.img_height
     num_channels = self._image_info.num_channels
     # Initialize the empty train data arrays:
-    num_train_imgs = num_classes * self._image_info.num_train_imgs_per_class
+    num_train_imgs = self._image_info.num_train_images
     self.train_data = np.empty((num_train_imgs, num_channels, img_w, img_h),
                                dtype='float32')
     self.train_labels = np.empty((num_train_imgs,), dtype='uint8')
     # Initialize the empty test data arrays:
-    num_test_imgs = num_classes * self._image_info.num_test_imgs_per_class
+    num_test_imgs = self._image_info.num_test_images
     self.test_data = np.empty((num_test_imgs, num_channels, img_w, img_h),
                               dtype='float32')
     self.test_labels = np.empty((num_test_imgs,), dtype='uint8')
@@ -178,7 +194,7 @@ class ImageLoader(object):
     """Loads all training images into memory and normalizes the data."""
     self._load_images(
         self._image_info.train_img_files,
-        self._image_info.num_train_imgs_per_class,
+        self._image_info.num_classes,
         self.train_data, self.train_labels, 'train')
     self.train_data = self.train_data.astype('float32') / 255
     self.train_labels = np_utils.to_categorical(self.train_labels,
@@ -188,21 +204,21 @@ class ImageLoader(object):
     """Loads all test images into memory and normalizes the data."""
     self._load_images(
         self._image_info.test_img_files,
-        self._image_info.num_test_imgs_per_class,
+        self._image_info.num_classes,
         self.test_data, self.test_labels, 'test')
     self.test_data = self.test_data.astype('float32') / 255
     self.test_labels = np_utils.to_categorical(self.test_labels,
                                                self._image_info.num_classes)
 
-  def _load_images(self, file_names, num_per_class, data, labels, disp):
+  def _load_images(self, file_names, num_classes, data, labels, disp):
     """Loads the images from the given file names to the given arrays.
     
     No data normalization happens at this step.
 
     Args:
-      file_names: a list of file names specifying where the images are.
-      num_per_class: the number of images per class. The labels will be assigned
-          according to this parameter.
+      file_names: a dictionary of file names specifying where the images are.
+      num_classes: the number of images classes. The labels will be assigned
+          between 0 and num_classes - 1.
       data: the pre-allocated numpy array into which the image data will be
           inserted.
       labels: the pre-allocated numpy array into which the image labels will be
@@ -210,25 +226,22 @@ class ImageLoader(object):
       disp: a string (e.g. 'test' or 'train') to print the correct information.
     """
     image_index = 0
-    label_id = -1
-    for impath in file_names:
-      if (image_index % num_per_class) == 0:
-        label_id += 1
-        print 'Loading {} images for class "{}" ({})...'.format(
-            disp, self._image_info.classnames[label_id], label_id)
-      img = Image.open(impath)
-      img = img.resize((self._image_info.img_width,
-                        self._image_info.img_height))
-      # TODO: convert only if channel = 1... otherwise, if the image is already
-      # grayscale, replicate the intensities into 3 channels.
-      if self._image_info.num_channels != 3:
-        img = img.convert('L')
-      img_arr = np.asarray(img, dtype='float32')
-      if self._image_info.num_channels == 3:
-        data[image_index, 0, :, :] = img_arr[:, :, 0]
-        data[image_index, 1, :, :] = img_arr[:, :, 1]
-        data[image_index, 2, :, :] = img_arr[:, :, 2]
-      else:
-        data[image_index, 0, :, :] = img_arr
-      labels[image_index] = label_id
-      image_index += 1
+    for label_id in range(num_classes):
+      print 'Loading {} images for class "{}" ({})...'.format(
+          disp, self._image_info.classnames[label_id], label_id)
+      for impath in file_names[label_id]:
+        img = Image.open(impath)
+        img = img.resize((self._image_info.img_width,
+                          self._image_info.img_height))
+        if self._image_info.num_channels != 3:
+          img = img.convert('L')
+        img_arr = np.asarray(img, dtype='float32')
+        # TODO: if image is gray but channels is 3, replicate gray channle to RGB.
+        if self._image_info.num_channels == 3:
+          data[image_index, 0, :, :] = img_arr[:, :, 0]
+          data[image_index, 1, :, :] = img_arr[:, :, 1]
+          data[image_index, 2, :, :] = img_arr[:, :, 2]
+        else:
+          data[image_index, 0, :, :] = img_arr
+        labels[image_index] = label_id
+        image_index += 1

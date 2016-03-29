@@ -84,9 +84,7 @@ def test_model(args, params):
   if not args.load_weights:
     print 'Cannot test model: no weights provided.'
     return
-  img_info = ImageInfo(params['number_of_classes'],
-                       params['train_imgs_per_class'],
-                       params['test_imgs_per_class'])
+  img_info = ImageInfo(params['number_of_classes'])
   img_info.set_image_dimensions(params['img_dimensions'])
   img_info.load_image_classnames(params['classnames_file'])
   img_info.load_test_image_paths(params['test_img_paths_file'])
@@ -163,9 +161,7 @@ def train_model(args, params):
         data parameters, and training hyperparameters.
   """
   # Set the data parameters and image source paths.
-  img_info = ImageInfo(params['number_of_classes'],
-                       params['train_imgs_per_class'],
-                       params['test_imgs_per_class'])
+  img_info = ImageInfo(params['number_of_classes'])
   img_info.set_image_dimensions(params['img_dimensions'])
   img_info.load_image_classnames(params['classnames_file'])
   img_info.load_train_image_paths(params['train_img_paths_file'])

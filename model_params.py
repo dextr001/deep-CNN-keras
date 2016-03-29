@@ -13,8 +13,6 @@ class ModelParams(object):
       'train_img_paths_file',
       'test_img_paths_file',
       'number_of_classes',
-      'train_imgs_per_class',
-      'test_imgs_per_class',
       'img_dimensions'
     ]
     self._params = {param: None for param in config_params}

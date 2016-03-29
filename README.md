@@ -63,8 +63,8 @@ The data itself can consist of any RGB or Grayscale images saved on your compute
 
 <ul>
   <li> A file containing a list of class names. Each line of this file should be a string indicating a classname (e.g. "cat", "dog", "building", etc. </li>
-  <li> A file containing a list of training images. Each line of this file should specify the <i>full path</i> of an image. The first <i>N</i> lines of the file are for images of the first class, the next <i>N</i> lines are for the next class, and so on. The order of classes should be the same as in the class names file. <b>At this time, you must have the same number of training images for each class.</b> This is still a TODO. </li>
-  <li> A file containing a list of test images. As for the training images, each line must specify the full path of an image. The file is ordered by class, and each class must have the same number of test images. </li>
+  <li> A file containing a list of training images. Each line of this file should specify the <i>full path</i> of an image, followed by a space and their numerical class number (e.g. 0, 1, 2, ..., N-1) where N is the total number of classes.
+  <li> A file containing a list of test images. As for the training images, each line must specify the full path of an image followed by the class number. </li>
 </ul>
 
 In all of the above files, empty lines will be ignored. Also, lines starting with a "#" will be ignored (so you can add comments).
@@ -80,27 +80,27 @@ dog
 ~~~~~
 # train_images.txt
 # 5 cat training images
-/home/users/You/data/cats/img1.jpg
-/home/users/You/data/cats/img2.jpg
-/home/users/You/data/cats/img3.jpg
-/home/users/You/data/cats/img4.jpg
-/home/users/You/data/cats/img5.jpg
+/home/users/You/data/cats/img1.jpg 0
+/home/users/You/data/cats/img2.jpg 0
+/home/users/You/data/cats/img3.jpg 0
+/home/users/You/data/cats/img4.jpg 0
+/home/users/You/data/cats/img5.jpg 0
 # 5 dog training images
-/home/users/You/data/dogs/img1.jpg
-/home/users/You/data/dogs/img2.jpg
-/home/users/You/data/dogs/img3.jpg
-/home/users/You/data/dogs/img4.jpg
-/home/users/You/data/dogs/img5.jpg
+/home/users/You/data/dogs/img1.jpg 1
+/home/users/You/data/dogs/img2.jpg 1
+/home/users/You/data/dogs/img3.jpg 1
+/home/users/You/data/dogs/img4.jpg 1
+/home/users/You/data/dogs/img5.jpg 1
 ~~~~~
 
 ~~~~~
 # test_images.txt
-# 2 cat test images
-/home/users/You/data/cats/img6.jpg
-/home/users/You/data/cats/img7.jpg
-# 2 dog test images
-/home/users/You/data/dogs/img6.jpg
-/home/users/You/data/dogs/img7.jpg
+# 2 cat and 3 dog test images
+/home/users/You/data/cats/img6.jpg 0
+/home/users/You/data/dogs/img6.jpg 1
+/home/users/You/data/cats/img7.jpg 0
+/home/users/You/data/dogs/img7.jpg 1
+/home/users/You/data/dogs/img8.jpg 1
 ~~~~~
 
 
@@ -111,7 +111,7 @@ Edit the <code>params.config</code> file (or write your own) with your specific 
 
 <ol>
   <li> Point to the data files you defined above. Specifically, set up the appropriate <code>classnames_file</code>, <code>train_img_paths_file</code>, and <code>test_img_paths_file</code>. Note that these file paths must be in quotes (i.e. they will be interpreted as Python strings). </li>
-  <li> Set the data parameters: <code>number_of_classes</code>, <code>train_imgs_per_class</code>, and <code>test_imgs_per_class</code>. Following the example files above, these values would be 2, 5, and 2, respectively. </li>
+  <li> Set the number of classes parameter: <code>number_of_classes</code>. Following the example files above, this values would be 2. </li>
   <li> Set the image dimensions (<code>img_dimensions</code>). All images will be resized to these dimensions (width, height, number of channels) before being fed into the CNN. <b>Currently, only 1 channel is supported (grayscale).</b> This is a TODO. </li>
   <li> Optionally, set the training hyperparameters as desired (<code>batch_size</code>, <code>num_epochs</code>, <code>learning_rate</code>, <code>decay</code>, and <code>momentum</code>). </li>
 </ol>
