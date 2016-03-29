@@ -112,6 +112,12 @@ def test_model(args, params):
   num_classes = params['number_of_classes']
   confusion_matrix = np.zeros((num_classes, num_classes))
   misclassified = []
+  # Convert the test image dictionary to a flat list.
+  test_img_files = []
+  for i in range(num_classes):
+    for img_file in img_info.test_img_files[i]:
+      test_img_files.append(img_file)
+  # Compute confusion matrix and find incorrect classifications.
   for i in range(num_predicted):
     predicted_class = predictions[i]
     correct = np.nonzero(img_loader.test_labels[i])
@@ -121,8 +127,7 @@ def test_model(args, params):
       num_correct += 1
     else:
       # Save the image file name, its correct class, and its predicted class.
-      misclassified.append(
-          (img_info.test_img_files[i], correct, predicted_class))
+      misclassified.append((test_img_files[i], correct, predicted_class))
   accuracy = round(float(num_correct) / float(num_predicted), 4)
   print 'Predicted classes for {} images with accuracy = {}'.format(
       num_predicted, accuracy)
