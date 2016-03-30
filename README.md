@@ -53,6 +53,7 @@ The config file must be provided (see below). Other options are as follows:
   <li> <code>--test</code> Runs a test on a model with existing weights instead of training. This option requires the <code>-load-weights</code> to be set. You may also want to explicity load the model (<code>-load-model</code>) that you used for training. </li>
   <li> <code>-confusion-matrix _file_</code> Saves a confusion matrix of the test results to the given file (test mode only). </li>
   <li> <code>-report-misclassified _file_</code> Saves a list of misclassified images to the given file (test mode only). Each line of this file will contain the path of a misclassified image, followed by its correct (ground truth) class, and then the class that was incorrectly predicted by the model. </li>
+  <li> <code>-report-scores _file_</code> For each test image, writes the path of the image file followed by the prediction probabilities for each possible class to the file, one image per line (test mode only). The format is <i>/path/to/image prob0 prob1 ...</i>. </li>
 </ul>
 
 

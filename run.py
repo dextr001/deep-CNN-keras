@@ -104,7 +104,6 @@ def test_model(args, params):
   start_time = time.time()
   predictions = model.predict_classes(img_loader.test_data,
                                       batch_size=params['batch_size'])
-  scores = model.predict(img_loader.test_data, batch_size=params['batch_size'])
   print 'Finished testing in {}.'.format(get_elapsed_time(start_time))
   # Compute the percentage of correct classifications.
   num_predicted = len(predictions)
@@ -152,6 +151,19 @@ def test_model(args, params):
     f.close()
     print 'Saved misclassified images report to {}.'.format(
         args.report_misclassified)
+  if args.report_scores:
+    print 'Computing instance scores...'
+    scores = model.predict_proba(img_loader.test_data,
+                                 batch_size=params['batch_size'],
+                                 verbose=0)
+    f = open(args.report_scores, 'w')
+    score_template = ' '.join(['{}'] * num_classes)
+    for i in range(len(scores)):
+      score_list = [round(score, 5) for score in scores[i]]
+      score_string = score_template.format(*score_list)
+      f.write('{} {}\n'.format(test_img_files[i], score_string))
+    f.close()
+    print 'Saved scores report to {}.'.format(args.report_scores)
 
 
 def train_model(args, params):
@@ -218,6 +230,9 @@ if __name__ == '__main__':
                       required=False,
                       help=('Saves a list of misclassified images to the ' +
                             'given file (test mode only).'))
+  parser.add_argument('-report-scores', dest='report_scores', required=False,
+                      help=('Saves a list of all classification scores to ' +
+                            'the given file (test mode only).'))
   parser.add_argument('-load-model', dest='load_model', required=False,
                       help='Load an existing model from this file.')
   parser.add_argument('-save-model', dest='save_model', required=False,
