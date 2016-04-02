@@ -10,7 +10,8 @@
 #   http://keras.io/layers/convolutional/
 
 import argparse
-from img_loader import ImageInfo, ImageLoader
+from img_info import ImageInfo
+from img_loader import ImageLoader
 from keras.models import model_from_json
 from model import build_model, compile_model
 from model_params import ModelParams
