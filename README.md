@@ -37,7 +37,7 @@ If you want to use the GPU (which is pretty much necessary if you want to train 
 Using the Code
 -----
 
-This code must be run in a Python 2 environment with all of the required modules listed above installed. The <code>run.py</code> script is what allows you to train or test a module.
+This code must be run in a Python 2 environment with all of the required modules listed above installed. The <code>run.py</code> script is what allows you to train or test a model.
 
 Run on CPU: <code>python run.py \<config-file\> [options]</code>
 
@@ -118,7 +118,7 @@ Edit the <code>params.config</code> file (or write your own) with your specific 
 </ol>
 
 
-Defining, Saving, and Loading a Module
+Defining, Saving, and Loading a Model
 -----
 
 TODO
