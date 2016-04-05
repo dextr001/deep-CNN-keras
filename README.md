@@ -23,10 +23,20 @@ Here is how to do this with Anaconda 2 (for Python 2):
   <li> Create a new anaconda environment: <code>$ conda create -n py27x python=2.7</code>. "py27x" is the name of the environment. You can name it whatever you want. </li>
   <li> <code>$ source activate py27x</code>. </li>
   <li> <code>$ pip install --upgrade pip</code> </li>
-  <li> <code>$ pip install keras</code> </li>
+  <li> <code>$ pip install keras</code>
+    <ul>
+      <li> If this fails due to an error installing scipy, run <code>$ conda install scipy</code> first. </li>
+      <li> This is a general fix for any packages it fails to install with pip. </li>
+    </ul>
+  </li>
   <li> <code>$ pip install git+git://github.com/Theano/Theano.git</code> </li>
   <li> <code>$ pip install Pillow</code> </li>
-  <li> <code>$ pip install h5py</code>. This will get an error along the way, but don't worry - it fixes itself. </li>
+  <li> <code>$ pip install h5py</code>.
+    <ul>
+      <li> This will get an error along the way, but don't worry - it fixes itself. </li>
+      <li> If it doesn't work at all, <code>$ conda install h5py</code> instead. </li>
+    </ul>
+  </li?
 </ol>
 
 Whenever you want to use this environment (which includes all of the things you just installed), simply run <code>$ source activate py27x</code>. Then run <code>source deactivate</code> when you're finished.
@@ -37,7 +47,7 @@ If you want to use the GPU (which is pretty much necessary if you want to train 
 Using the Code
 -----
 
-This code must be run in a Python 2 environment with all of the required modules listed above installed. The <code>run.py</code> script is what allows you to train or test a module.
+This code must be run in a Python 2 environment with all of the required modules listed above installed. The <code>run.py</code> script is what allows you to train or test a model.
 
 Run on CPU: <code>python run.py \<config-file\> [options]</code>
 
@@ -118,7 +128,7 @@ Edit the <code>params.config</code> file (or write your own) with your specific 
 </ol>
 
 
-Defining, Saving, and Loading a Module
+Defining, Saving, and Loading a Model
 -----
 
 TODO
