@@ -83,7 +83,8 @@ class ImageLoader(object):
     for label_id in range(num_classes):
       print 'Loading {} images for class "{}" ({})...'.format(
           disp, self._image_info.classnames[label_id], label_id)
-      for impath in file_names[label_id]:
+      for imdata in file_names[label_id]:
+        impath = imdata[0]
         img = Image.open(impath)
         img = img.resize((self._image_info.img_width,
                           self._image_info.img_height))

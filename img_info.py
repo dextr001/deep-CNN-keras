@@ -7,19 +7,17 @@ class ImageInfo(object):
 
   _DEFAULT_IMG_DIMENSIONS = (256, 256, 1)
 
-  def __init__(self, num_classes):
+  def __init__(self, num_classes, explicit_labels=False):
     """Sets up the initial data variables and data set sizes.
 
     Args:
       num_classes: the number of data classes in the data set.
-      num_train_imgs_per_class: the number of training images provided for each
-          class. The number of images must be the same for each class. For
-          example, if this number is 100, then for each of the 'num_classes'
-          classes, exactly 100 training images must be provided.
-      num_test_imgs_per_class: similarly, the number of test images per class.
+      explicit_labels: set to True if the provided data has soft labels or
+          otherwise explicity defined values for each class for the data.
     """
-    # Set the data size values.
+    # Set the data values.
     self.num_classes = num_classes
+    self.explicit_labels = explicit_labels
     # Initialize the data lists.
     self.img_dimensions = self._DEFAULT_IMG_DIMENSIONS
     self.classnames = []
@@ -139,9 +137,14 @@ class ImageInfo(object):
       line = line.strip()
       if len(line) == 0 or line.startswith('#'):
         continue
-      impath, classnum = line.split()
+      imdata = line.split()
+      impath, classnum = imdata[0], imdata[1]
       classnum = int(classnum)
-      destination[classnum].append(impath)
+      label_vals = []
+      if self.explicit_labels:
+        for i in range(self.num_classes):
+          label_vals.append(float(imdata[i+2]))
+      destination[classnum].append((impath, label_vals))
       num_images += 1
     paths_file.close()
     return num_images
