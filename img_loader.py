@@ -51,8 +51,9 @@ class ImageLoader(object):
         self._image_info.num_classes,
         self.train_data, self.train_labels, 'train')
     self.train_data = self.train_data.astype('float32') / 255
-    self.train_labels = np_utils.to_categorical(self.train_labels,
-                                                self._image_info.num_classes)
+    self.train_labels = self._format_labels(self.train_labels,
+                                            self._image_info.train_img_files,
+                                            self._image_info.num_classes)
 
   def load_test_images(self):
     """Loads all test images into memory and normalizes the data."""
@@ -61,8 +62,9 @@ class ImageLoader(object):
         self._image_info.num_classes,
         self.test_data, self.test_labels, 'test')
     self.test_data = self.test_data.astype('float32') / 255
-    self.test_labels = np_utils.to_categorical(self.test_labels,
-                                               self._image_info.num_classes)
+    self.test_labels = self._format_labels(self.test_labels,
+                                           self._image_info.test_img_files,
+                                           self._image_info.num_classes)
 
   def _load_images(self, file_names, num_classes, data, labels, disp):
     """Loads the images from the given file names to the given arrays.
@@ -70,7 +72,9 @@ class ImageLoader(object):
     No data normalization happens at this step.
 
     Args:
-      file_names: a dictionary of file names specifying where the images are.
+      file_names: a dictionary that maps each label ID to a list of tuples. Each
+          tuple should contain the file names specifying where the images are,
+          followed by a (possibly empty) list of explicit label values.
       num_classes: the number of images classes. The labels will be assigned
           between 0 and num_classes - 1.
       data: the pre-allocated numpy array into which the image data will be
@@ -100,3 +104,25 @@ class ImageLoader(object):
           data[image_index, 0, :, :] = img_arr
         labels[image_index] = label_id
         image_index += 1
+
+  def _format_labels(self, labels, file_names, num_classes):
+    """Formats the image labels to a Keras-ready label vector.
+
+    Args:
+      labels: an array of true class assignments, for each image. These values
+          should be between 0 and num_classes-1.
+      file_names: a dictionary that maps each label ID to a list of tuples. Each
+          tuple should contain the file names specifying where the images are,
+          followed by a (possibly empty) list of explicit label values.
+      num_classes: the total number of possible classes.
+
+    Returns:
+      The formatted labels, which is a nparray matrix. Each row is a label
+      vector for the associated image. The label vector is a normalized vector
+      of weights for each class. If ImageInfo.explicit_labels is set to False,
+      then this label vector will be a 1-hot vector.
+    """
+    if self._image_info.explicit_labels:
+      print 'Explicit labels not supported.'
+    else:
+      return np_utils.to_categorical(labels, num_classes)
