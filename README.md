@@ -12,6 +12,7 @@ Before you can run this code, you need to have all of the following Python modul
   <li> Theano </li>
   <li> Pillow </li>
   <li> h5py </li>
+  <li> sklearn </li>
 </ul>
 
 Here is how to do this with Anaconda 2 (for Python 2):
@@ -32,6 +33,7 @@ Here is how to do this with Anaconda 2 (for Python 2):
   <li> <code>$ pip install git+git://github.com/Theano/Theano.git</code> </li>
   <li> <code>$ pip install Pillow</code> </li>
   <li> <code>$ pip install h5py</code>.
+  <li> <code>$ pip install sklearn</code>.
     <ul>
       <li> This will get an error along the way, but don't worry - it fixes itself. </li>
       <li> If it doesn't work at all, <code>$ conda install h5py</code> instead. </li>
@@ -60,6 +62,7 @@ The config file must be provided (see below). Other options are as follows:
   <li> <code>-save-model _file_</code> Saves the model architecture used for training to the given file (training mode only). You may want to save the model after training to test it later. </li>
   <li> <code>-load-weights _file_</code> Loads existing weights from this file. The weights must match the architecture of the model being used. You can load weights for a training run to fine-tune the model's parameters. </li>
   <li> <code>-save-weights _file_</code> Saves the trained weights to this file (training mode only). You should save weights if you wish to test the trained model later. </li>
+  <li> <code>--explicit-labels</code> Uses an explicitly-provided label distribution over the classes (i.e. soft labels) instead of just a 1-hot vector for labels. To use this option, the code must be formatted appropriately (see "Preparing Your Data" below). </li>
   <li> <code>--test</code> Runs a test on a model with existing weights instead of training. This option requires the <code>-load-weights</code> to be set. You may also want to explicity load the model (<code>-load-model</code>) that you used for training. </li>
   <li> <code>-confusion-matrix _file_</code> Saves a confusion matrix of the test results to the given file (test mode only). </li>
   <li> <code>-report-misclassified _file_</code> Saves a list of misclassified images to the given file (test mode only). Each line of this file will contain the path of a misclassified image, followed by its correct (ground truth) class, and then the class that was incorrectly predicted by the model. </li>
@@ -113,6 +116,40 @@ dog
 /home/users/You/data/dogs/img7.jpg 1
 /home/users/You/data/dogs/img8.jpg 1
 ~~~~~
+
+<b><u>Using Soft Labels</u></b>:
+
+If you want to explicity provide label values for each image (instead of just using 1-hot label vectors for the model), you can add the soft label values (floats) on each line of the train and test data files, after the class ID. For each image, you have to specify a weight for each possible class. For example, we can augment the above data with soft labels:
+
+~~~~~
+# train_images.txt
+# 5 cat training images
+/home/users/You/data/cats/img1.jpg 0 0.9 0.1
+/home/users/You/data/cats/img2.jpg 0 0.8 0.2
+/home/users/You/data/cats/img3.jpg 0 0.5 0.5
+/home/users/You/data/cats/img4.jpg 0 1 0
+/home/users/You/data/cats/img5.jpg 0 0.7 0.3
+# 5 dog training images
+/home/users/You/data/dogs/img1.jpg 1 0.1 0.9
+/home/users/You/data/dogs/img2.jpg 1 0 1
+/home/users/You/data/dogs/img3.jpg 1 0.3 0.7
+/home/users/You/data/dogs/img4.jpg 1 0.25 0.75
+/home/users/You/data/dogs/img5.jpg 1 0.4 0.6
+~~~~~
+
+~~~~~
+# test_images.txt
+# 2 cat and 3 dog test images
+/home/users/You/data/cats/img6.jpg 0 0.9 0.1
+/home/users/You/data/dogs/img6.jpg 1 0.2 0.8
+/home/users/You/data/cats/img7.jpg 0 0.5 0.5
+/home/users/You/data/dogs/img7.jpg 1 0.0 1.0
+/home/users/You/data/dogs/img8.jpg 1 0.1 0.9
+~~~~~
+
+Note that there are 2 classes, so we provide 2 weights for each image. If there were N classes, you have to specify N weights per line.
+
+An example use case for this is if the images have some visual similarities to images of other classes, then you can provide a better distribution to model this similarity better.
 
 
 Setting Up the Config File
