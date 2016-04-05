@@ -123,6 +123,14 @@ class ImageLoader(object):
       then this label vector will be a 1-hot vector.
     """
     if self._image_info.explicit_labels:
-      print 'Explicit labels not supported.'
+      label_matrix = np.empty((len(labels), num_classes), dtype='float32')
+      image_index = 0
+      for label_id in range(num_classes):
+        for imdata in file_names[label_id]:
+          labels = imdata[1]
+          label_matrix[image_index, :] = np.asarray(labels)
+          image_index += 1
+      print label_matrix
+      return label_matrix
     else:
       return np_utils.to_categorical(labels, num_classes)
