@@ -4,6 +4,7 @@
 from keras.utils import np_utils
 import numpy as np
 from PIL import Image
+from sklearn.preprocessing import normalize
 
 
 class ImageLoader(object):
@@ -127,10 +128,11 @@ class ImageLoader(object):
       image_index = 0
       for label_id in range(num_classes):
         for imdata in file_names[label_id]:
-          labels = imdata[1]
-          label_matrix[image_index, :] = np.asarray(labels)
+          labels = np.asarray(imdata[1])
+          # Normalize the labels just in case.
+          labels = normalize(labels[:, np.newaxis], axis=0).ravel()
+          label_matrix[image_index, :] = labels
           image_index += 1
-      print label_matrix
       return label_matrix
     else:
       return np_utils.to_categorical(labels, num_classes)
