@@ -10,35 +10,13 @@
 #   http://keras.io/layers/convolutional/
 
 import argparse
+from elapsed_timer import ElapsedTimer
 from img_info import ImageInfo
 from img_loader import ImageLoader
 from keras.models import model_from_json
 from model import build_model, compile_model
 from model_params import ModelParams
 import numpy as np
-import time
-
-
-def get_elapsed_time(start_time):
-  """Returns the elapsed time, formatted as a string.
-  
-  Args:
-    start_time: the start time (called before timing using time.time()).
-
-  Returns:
-    The elapsed time as a string (e.g. "x seconds" or "x minutes").
-  """
-  elapsed = time.time() - start_time
-  time_units = ['seconds', 'minutes', 'hours', 'days']
-  unit_index = 0
-  intervals = [60, 60, 24]
-  for interval in intervals:
-    if elapsed < interval:
-      break
-    elapsed /= interval
-    unit_index += 1
-  elapsed = round(elapsed, 2)
-  return '{} {}'.format(elapsed, time_units[unit_index])
 
 
 def get_model(args, img_info):
@@ -92,20 +70,19 @@ def test_model(args, params):
   # Load the model and its weights and compile it.
   model = get_model(args, img_info)
   print ('Compiling module...')
-  start_time = time.time()
+  timer = ElapsedTimer()
   compile_model(model, params)
-  print 'Done in {}.'.format(get_elapsed_time(start_time))
+  print 'Done in {}.'.format(timer.get_elapsed_time())
   # Load the test images into memory and preprocess appropriately.
-  start_time = time.time()
+  timer.reset()
   img_loader = ImageLoader(img_info)
   img_loader.load_test_images()
-  print 'Test data successfully loaded in {}.'.format(
-      get_elapsed_time(start_time))
+  print 'Test data successfully loaded in {}.'.format(timer.get_elapsed_time())
   # Run the evaluation on the test data.
-  start_time = time.time()
+  timer.reset()
   predictions = model.predict_classes(img_loader.test_data,
                                       batch_size=params['batch_size'])
-  print 'Finished testing in {}.'.format(get_elapsed_time(start_time))
+  print 'Finished testing in {}.'.format(timer.get_elapsed_time())
   # Compute the percentage of correct classifications.
   num_predicted = len(predictions)
   num_correct = 0
@@ -194,22 +171,22 @@ def train_model(args, params):
     print 'Saved model architecture to {}.'.format(args.save_model)
   # Compile the model.
   print ('Compiling module...')
-  start_time = time.time()
+  timer = ElapsedTimer()
   compile_model(model, params)
-  print 'Done in {}.'.format(get_elapsed_time(start_time))
+  print 'Done in {}.'.format(timer.get_elapsed_time())
   # Load the images into memory and preprocess appropriately.
-  start_time = time.time()
+  timer.reset()
   img_loader = ImageLoader(img_info)
   img_loader.load_all_images()
-  print 'Data successfully loaded in {}.'.format(get_elapsed_time(start_time))
+  print 'Data successfully loaded in {}.'.format(timer.get_elapsed_time())
   # Train the model.
-  start_time = time.time()
+  timer.reset()
   # TODO: implement data augmentation option.
   model.fit(img_loader.train_data, img_loader.train_labels,
             validation_data=(img_loader.test_data, img_loader.test_labels),
             batch_size=params['batch_size'], nb_epoch=params['num_epochs'],
             shuffle=True, show_accuracy=True, verbose=1)
-  print 'Finished training in {}.'.format(get_elapsed_time(start_time))
+  print 'Finished training in {}.'.format(timer.get_elapsed_time())
   # Save the weights if that option was specified.
   if args.save_weights:
     model.save_weights(args.save_weights)
