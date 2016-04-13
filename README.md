@@ -38,7 +38,7 @@ Here is how to do this with Anaconda 2 (for Python 2):
       <li> This will get an error along the way, but don't worry - it fixes itself. </li>
       <li> If it doesn't work at all, <code>$ conda install h5py</code> instead. </li>
     </ul>
-  </li?
+  </li>
 </ol>
 
 Whenever you want to use this environment (which includes all of the things you just installed), simply run <code>$ source activate py27x</code>. Then run <code>source deactivate</code> when you're finished.
