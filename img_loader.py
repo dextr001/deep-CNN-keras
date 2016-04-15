@@ -111,3 +111,18 @@ class ImageLoader(object):
         labels[image_index] = label_id
         image_index += 1
 
+  def assign_soft_labels(self, affinity_matrix):
+    """Assigns soft labels, replacing the 1-hot labels for all training images.
+
+    Each image will be assigned the label vector for its class.
+
+    Args:
+      affinity_matrix: an N by N nparray matrix where N is the number of classes
+          in this data.
+    """
+    # Normalize in case it was not normalized already.
+    affinity_matrix = normalize(affinity_matrix, axis=1)
+    num_images = self._image_info.num_train_images
+    for i in range(num_images):
+      label_id = np.where(self.train_labels[i] == 1)[0][0]
+      self.train_labels[i, :] = affinity_matrix[label_id, :]
