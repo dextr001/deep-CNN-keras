@@ -63,10 +63,7 @@ def test_model(args, params):
   if not args.load_weights:
     print 'Cannot test model: no weights provided.'
     return
-  img_info = ImageInfo(params['number_of_classes'])
-  img_info.set_image_dimensions(params['img_dimensions'])
-  img_info.load_image_classnames(params['classnames_file'])
-  img_info.load_test_image_paths(params['test_img_paths_file'])
+  img_info = ImageInfo(params, test_only=True)
   # Load the model and its weights and compile it.
   model = get_model(args, img_info)
   print ('Compiling module...')
@@ -156,11 +153,7 @@ def train_model(args, params):
         data parameters, and training hyperparameters.
   """
   # Set the data parameters and image source paths.
-  img_info = ImageInfo(params['number_of_classes'])
-  img_info.set_image_dimensions(params['img_dimensions'])
-  img_info.load_image_classnames(params['classnames_file'])
-  img_info.load_train_image_paths(params['train_img_paths_file'])
-  img_info.load_test_image_paths(params['test_img_paths_file'])
+  img_info = ImageInfo(params)
   # Load the model and (possibly) its weights.
   model = get_model(args, img_info)
   # Save the model if that option was specified.

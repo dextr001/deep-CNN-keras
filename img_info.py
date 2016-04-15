@@ -7,17 +7,21 @@ class ImageInfo(object):
 
   _DEFAULT_IMG_DIMENSIONS = (256, 256, 1)
 
-  def __init__(self, num_classes):
-    """Sets up the initial data variables and data set sizes.
+  def __init__(self, params, test_only=False):
+    """Sets data variables and loads the file paths.
 
     Args:
-      num_classes: the number of data classes in the data set.
+      params: a ModelParams object containing the appropriate data file paths
+          and data parameters.
+      test_only: True if we should ignore the training data and not load it.
     """
     # Set the data values.
-    self.num_classes = num_classes
+    self.num_classes = params['number_of_classes']
     # Initialize the data lists.
-    self.img_dimensions = self._DEFAULT_IMG_DIMENSIONS
-    self.classnames = []
+    self.img_dimensions = self._process_image_dimensions(
+        params['img_dimensions'])
+    self.classnames = self._load_image_classnames(params['classnames_file'])
+    # Set up data structures for training and test images.
     self.train_img_files = {}
     self.test_img_files = {}
     for i in range(self.num_classes):
@@ -25,6 +29,11 @@ class ImageInfo(object):
       self.test_img_files[i] = []
     self.num_train_images = 0
     self.num_test_images = 0
+    # If not in test-only mode, load the path names for training images.
+    if not test_only:
+      self._load_train_image_paths(params['train_img_paths_file'])
+    # Load the path names for test images.
+    self._load_test_image_paths(params['test_img_paths_file'])
  
   @property
   def img_width(self):
@@ -53,8 +62,8 @@ class ImageInfo(object):
     """
     return self.img_dimensions[2]
 
-  def set_image_dimensions(self, dimensions):
-    """Set the training and testing image dimensions.
+  def _process_image_dimensions(self, dimensions):
+    """Returns the training and testing image dimensions.
     
     All images fed into the neural network, for training and testing, will be
     formatted to match these dimensions.
@@ -65,6 +74,9 @@ class ImageInfo(object):
           height - a positive integer indicating the height of the images.
           num_channels - the number of channels to use. This number should be 1
               for grayscale training images or 3 to train on full RGB data.
+
+    Returns:
+      Valid image dimensions, as a (width, height, num_channels) tuple.
     """
     width, height, num_channels = dimensions
     # Make sure all the data is valid.
@@ -74,26 +86,30 @@ class ImageInfo(object):
       height = self._DEFAULT_IMG_DIMENSIONS[1]
     if num_channels not in [1, 3]:
       num_channels = self._DEFAULT_IMG_DIMENSIONS[2]
-    # Set the dimensions.
-    self.img_dimensions = (width, height, num_channels)
+    return (width, height, num_channels)
 
-  def load_image_classnames(self, fname):
+  def _load_image_classnames(self, fname):
     """Reads the classnames for the image data from the given file.
     
     Each class name should be on a separate line.
 
     Args:
       fname: the name of the file containing the list of class names.
+
+    Returns:
+      The list of class names.
     """
     classnames_file = open(fname, 'r')
+    classnames = []
     for line in classnames_file:
       line = line.strip()
       if len(line) == 0 or line.startswith('#'):
         continue
-      self.classnames.append(line)
+      classnames.append(line)
     classnames_file.close()
+    return classnames
 
-  def load_train_image_paths(self, fname):
+  def _load_train_image_paths(self, fname):
     """Reads the image paths for the training data from the given file.
     
     Each file name (full directory path) should be on a separate line. The file
@@ -104,7 +120,7 @@ class ImageInfo(object):
     """
     self.num_train_images = self._read_file_data(fname, self.train_img_files)
 
-  def load_test_image_paths(self, fname):
+  def _load_test_image_paths(self, fname):
     """Reads the image paths for the test data from the given file.
     
     Each file name (full directory path) should be on a separate line. The file
