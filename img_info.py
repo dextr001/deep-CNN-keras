@@ -7,17 +7,14 @@ class ImageInfo(object):
 
   _DEFAULT_IMG_DIMENSIONS = (256, 256, 1)
 
-  def __init__(self, num_classes, explicit_labels=False):
+  def __init__(self, num_classes):
     """Sets up the initial data variables and data set sizes.
 
     Args:
       num_classes: the number of data classes in the data set.
-      explicit_labels: set to True if the provided data has soft labels or
-          otherwise explicity defined values for each class for the data.
     """
     # Set the data values.
     self.num_classes = num_classes
-    self.explicit_labels = explicit_labels
     # Initialize the data lists.
     self.img_dimensions = self._DEFAULT_IMG_DIMENSIONS
     self.classnames = []
@@ -140,11 +137,7 @@ class ImageInfo(object):
       imdata = line.split()
       impath, classnum = imdata[0], imdata[1]
       classnum = int(classnum)
-      label_vals = []
-      if self.explicit_labels:
-        for i in range(self.num_classes):
-          label_vals.append(float(imdata[i+2]))
-      destination[classnum].append((impath, label_vals))
+      destination[classnum].append(impath)
       num_images += 1
     paths_file.close()
     return num_images

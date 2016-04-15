@@ -50,89 +50,64 @@ class ImageLoader(object):
     self._load_images(
         self._image_info.train_img_files,
         self._image_info.num_classes,
-        self.train_data, self.train_labels, 'train')
+        self.train_data, self.train_labels, disp='train')
     self.train_data = self.train_data.astype('float32') / 255
-    self.train_labels = self._format_labels(self.train_labels,
-                                            self._image_info.train_img_files,
-                                            self._image_info.num_classes)
+    self.train_labels = np_utils.to_categorical(self.train_labels,
+                                                self._image_info.num_classes)
 
   def load_test_images(self):
     """Loads all test images into memory and normalizes the data."""
     self._load_images(
         self._image_info.test_img_files,
         self._image_info.num_classes,
-        self.test_data, self.test_labels, 'test')
+        self.test_data, self.test_labels, disp='test')
     self.test_data = self.test_data.astype('float32') / 255
-    self.test_labels = self._format_labels(self.test_labels,
-                                           self._image_info.test_img_files,
-                                           self._image_info.num_classes)
+    self.test_labels = np_utils.to_categorical(self.test_labels,
+                                               self._image_info.num_classes)
 
-  def _load_images(self, file_names, num_classes, data, labels, disp):
+  def _load_images(self, file_names, num_classes, data, labels,
+                   disp='all'):
     """Loads the images from the given file names to the given arrays.
     
     No data normalization happens at this step.
 
     Args:
-      file_names: a dictionary that maps each label ID to a list of tuples. Each
-          tuple should contain the file names specifying where the images are,
-          followed by a (possibly empty) list of explicit label values.
+      file_names: a dictionary that maps each label ID to a list of file paths
+          that points to the locations of the images on disk.
       num_classes: the number of images classes. The labels will be assigned
           between 0 and num_classes - 1.
       data: the pre-allocated numpy array into which the image data will be
           inserted.
       labels: the pre-allocated numpy array into which the image labels will be
           inserted.
-      disp: a string (e.g. 'test' or 'train') to print the correct information.
+      disp: a string (e.g. 'test' or 'train') to show what type of data is being
+          loaded in the prints.
     """
     image_index = 0
     for label_id in range(num_classes):
       print 'Loading {} images for class "{}" ({})...'.format(
           disp, self._image_info.classnames[label_id], label_id)
-      for imdata in file_names[label_id]:
-        impath = imdata[0]
+      for impath in file_names[label_id]:
         img = Image.open(impath)
         img = img.resize((self._image_info.img_width,
                           self._image_info.img_height))
         if self._image_info.num_channels != 3:
           img = img.convert('L')
         img_arr = np.asarray(img, dtype='float32')
-        # TODO: if image is gray but channels is 3, replicate gray channle to RGB.
         if self._image_info.num_channels == 3:
-          data[image_index, 0, :, :] = img_arr[:, :, 0]
-          data[image_index, 1, :, :] = img_arr[:, :, 1]
-          data[image_index, 2, :, :] = img_arr[:, :, 2]
+          # If the raw image is grayscale but the classification is on RGB data,
+          # replicate the grayscale intensities across the three channels.
+          if img_arr.ndim == 2:
+            data[image_index, 0, :, :] = img_arr
+            data[image_index, 1, :, :] = img_arr
+            data[image_index, 2, :, :] = img_arr
+          # Otherwise, extract each channel and add it to the data array.
+          else:
+            data[image_index, 0, :, :] = img_arr[:, :, 0]
+            data[image_index, 1, :, :] = img_arr[:, :, 1]
+            data[image_index, 2, :, :] = img_arr[:, :, 2]
         else:
           data[image_index, 0, :, :] = img_arr
         labels[image_index] = label_id
         image_index += 1
 
-  def _format_labels(self, labels, file_names, num_classes):
-    """Formats the image labels to a Keras-ready label vector.
-
-    Args:
-      labels: an array of true class assignments, for each image. These values
-          should be between 0 and num_classes-1.
-      file_names: a dictionary that maps each label ID to a list of tuples. Each
-          tuple should contain the file names specifying where the images are,
-          followed by a (possibly empty) list of explicit label values.
-      num_classes: the total number of possible classes.
-
-    Returns:
-      The formatted labels, which is a nparray matrix. Each row is a label
-      vector for the associated image. The label vector is a normalized vector
-      of weights for each class. If ImageInfo.explicit_labels is set to False,
-      then this label vector will be a 1-hot vector.
-    """
-    if self._image_info.explicit_labels:
-      label_matrix = np.empty((len(labels), num_classes), dtype='float32')
-      image_index = 0
-      for label_id in range(num_classes):
-        for imdata in file_names[label_id]:
-          labels = np.asarray(imdata[1])
-          # Normalize the labels just in case.
-          labels = normalize(labels[:, np.newaxis], axis=0).ravel()
-          label_matrix[image_index, :] = labels
-          image_index += 1
-      return label_matrix
-    else:
-      return np_utils.to_categorical(labels, num_classes)

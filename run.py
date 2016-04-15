@@ -63,7 +63,7 @@ def test_model(args, params):
   if not args.load_weights:
     print 'Cannot test model: no weights provided.'
     return
-  img_info = ImageInfo(params['number_of_classes'], args.explicit_labels)
+  img_info = ImageInfo(params['number_of_classes'])
   img_info.set_image_dimensions(params['img_dimensions'])
   img_info.load_image_classnames(params['classnames_file'])
   img_info.load_test_image_paths(params['test_img_paths_file'])
@@ -156,7 +156,7 @@ def train_model(args, params):
         data parameters, and training hyperparameters.
   """
   # Set the data parameters and image source paths.
-  img_info = ImageInfo(params['number_of_classes'], args.explicit_labels)
+  img_info = ImageInfo(params['number_of_classes'])
   img_info.set_image_dimensions(params['img_dimensions'])
   img_info.load_image_classnames(params['classnames_file'])
   img_info.load_train_image_paths(params['train_img_paths_file'])
@@ -198,6 +198,7 @@ if __name__ == '__main__':
       description='Run a deep neural network model using Keras.')
   parser.add_argument('params_file',
                       help='The file containing data paths and model params.')
+  # TODO: this should point to a file that contains the soft label matrix.
   parser.add_argument('--explicit-labels', dest='explicit_labels',
                       action='store_true',
                       help=('Use explicit label values for the data. The ' +
