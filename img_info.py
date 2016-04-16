@@ -1,6 +1,8 @@
 # Handles processing image path files (which define where the data is stored)
 # and their associated labels.
 
+import error_logger
+
 
 class ImageInfo(object):
   """Loads image file paths from input files."""
@@ -99,7 +101,10 @@ class ImageInfo(object):
     Returns:
       The list of class names.
     """
-    classnames_file = open(fname, 'r')
+    try:
+      classnames_file = open(fname, 'r')
+    except:
+      error_logger.error_and_die('Could not open file "{}".'.format(fname))
     classnames = []
     for line in classnames_file:
       line = line.strip()
@@ -107,6 +112,8 @@ class ImageInfo(object):
         continue
       classnames.append(line)
     classnames_file.close()
+    error_logger.assert_or_die(len(classnames) == self.num_classes,
+        'Number of classes does not match the given value.')
     return classnames
 
   def _load_train_image_paths(self, fname):
@@ -144,15 +151,32 @@ class ImageInfo(object):
     Returns:
       The number of image paths that were provided for this data batch.
     """
-    paths_file = open(fname, 'r')
+    try:
+      paths_file = open(fname, 'r')
+    except:
+      error_logger.error_and_die('Could not open file "{}".'.format(fname))
     num_images = 0
+    file_line_num = 0
     for line in paths_file:
+      file_line_num += 1
       line = line.strip()
       if len(line) == 0 or line.startswith('#'):
         continue
       imdata = line.split()
+      error_logger.assert_or_die(len(imdata) >= 2,
+          'Line {} of file "{}" is not correctly formatted.'.format(
+              file_line_num, fname))
       impath, classnum = imdata[0], imdata[1]
-      classnum = int(classnum)
+      try:
+        classnum = int(classnum)
+      except:
+        error_logger.error_and_die(
+            'Class value on line {} of file "{}" must be an int.'.format(
+                file_line_num, fname))
+      error_logger.assert_or_die(0 <= classnum < self.num_classes,
+          ('Class number on line {} of file "{}" is out of range ' +
+           '(should be between 0 and {}).').format(
+                file_line_num, fname, self.num_classes - 1))
       destination[classnum].append(impath)
       num_images += 1
     paths_file.close()
